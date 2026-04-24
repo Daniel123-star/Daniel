@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEWEL</title>
+    <style>
+        body {
+        margin: 0;
+        overflow: hidden;
+        background: linear-gradient(135deg, #ff4d6d, #ff99ac);
+        font-family: Arial, sans-serif;
+        }
+
+        .container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            z-index: 2;       
+        }
+        h1 {
+            font-size: 3em;
+            text-shadow: 0 0 20px white;
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        #yes {
+            background: #fff;
+            color: white;
+            position: absolute;
+        }
+        #message {
+            margin-top: 20px;
+            font-size: 2em;
+            display: none;
+        }
+        .hearts {
+            position:absolute;
+            width: 20px;
+            height: 20px;
+            background: red;
+          animation: float 6s linear infinite;
+        }
+        .heart::before,
+        .heart::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: red;
+            border-radius: 50%;
+        }
+        .heart::before { top: -10px; left: 0;}
+        .heart::before { left: -10px; top: 0;}
+
+        @Keyframes float {
+            0% { transform: translateY(100vh) rotate(45deg); opacity: 1;
+             }
+            100% { transform: translateY(-10vh) rotate(45deg); opacity: 0;
+            }
+        }
+
+
+        .rain {
+            position: absolute;
+            top: -20px;
+            font-size: 20px;
+            color: red;
+            animation: fall linear infinite;
+            z-index: 1;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh); opacity: 1;}
+            100% { transform: translateY(110vh); opacity: 0;}
+        }
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px white; }
+            100% { text-shadow: 0 0 30px yellow, 0 0 60px pink; }
+        }
+       
+        </style>
+</head>
+
+<body>
+<div class="buttons">
+<button id="yes">YES ❤️</button>
+<button id="no">NO X</button>
+</div>
+
+<div id="message"> I Knew you love me, Jewel! ❤️❤️</div>
+</div>
+
+<auto id="music" loop autoplay>
+    <source 
+    src="htpps://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b6b6c0c2.mp3" type="audio/mp3"> </audio>
+    <script>
+
+        function createHeart() {
+            const heart =argumentsdocument.createElement("div");
+            heart.classList.add("heart");
+            heart.style.left =  Math.random() * 100 + "vw";
+            heart.style.animationDuration = (Math.random() *3 + 3) + "s";
+            document.body.appendchild(heart);
+            setTimeout(() => heart.remove(), 6000);
+        }
+        setInterval(createHeart, 300);
+
+        function rainHearts() {
+            const rain =argumentsdocument.createElement("div");
+            rain.classList.add("rain");
+            rain.innerHtml = "❤️";
+            rain.style.left = Math .random() * 100 + "vw";
+            rain.style.animationDuration = (Math.random() * 2 + 2) + "s";
+            document.body.appenchild(rain);
+            setTimeout(() =>rain.remove(), 5000);
+        }
+        setInterval(rainHearts, 100);
+
+        document.body,addEventListener("click", () => {
+            document.getElementById("music").play();
+        }, { once: true });
+        document.getElementById("yes").onclick = function () {
+            const phone = "08069414519";
+            const message = " Yes I Love You Too ❤️";
+            const url =
+            'https://wa.me/${phone?text=${encodeURIComponenet(message)}';
+            window.open(url, "_blank");
+        };
+
+        const noBtn =
+        document.getElementById("no");
+        noBtn.addEventListener("mouseover", () => {
+            const x = Math.random() * (window.innerWidth - 100);
+            const y = Math.random() * (window.innerHeight - 50);
+            noBtn.style.left = x + "px";
+            noBtn.style.top =  y + "px";
+        });
+        </script>
+        </body>
+        </html>
