@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sweet Bakery Pro</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+body{background:#fff8f0;color:#222;}
+
+header{
+  background:#8b4513;
+  color:white;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.cart-btn,.admin-btn{
+  border:none;
+  padding:8px 12px;
+  border-radius:20px;
+  color:white;
+  cursor:pointer;
+}
+
+.cart-btn{background:#ff9800;}
+.admin-btn{background:#222;margin-left:5px;}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:15px;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.card img{width:100%;height:140px;object-fit:cover;}
+.card div{padding:10px;}
+
+button.action{
+  width:100%;
+  padding:8px;
+  background:#8b4513;
+  border:none;
+  color:white;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+.page{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:white;
+  display:none;
+  overflow:auto;
+  padding:20px;
+}
+
+.item{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  border-bottom:1px solid #ddd;
+}
+
+.total{
+  font-size:20px;
+  font-weight:bold;
+  margin-top:10px;
+}
+
+.paybox{
+  margin-top:20px;
+  padding:15px;
+  border:2px solid #8b4513;
+  border-radius:10px;
+  background:#fffaf5;
+}
+
+.receipt{
+  margin-top:15px;
+  background:#f4f4f4;
+  padding:10px;
+  border-radius:10px;
+}
+
+.login{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.login-box{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:280px;
+}
+
+.login-box input{
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+}
+
+.admin-panel{
+  margin-top:20px;
+  padding:15px;
+  border:2px dashed #8b4513;
+  border-radius:10px;
+  display:none;
+}
+
+.status-pending{color:orange;font-weight:bold;}
+.status-paid{color:green;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Sweet Bakery Pro</h2>
+<div>
+<button class="cart-btn" onclick="openCart()">Cart (<span id="count">0</span>)</button>
+<button class="admin-btn" onclick="openLogin()">Admin</button>
+</div>
+</header>
+
+<!-- PRODUCTS -->
+<section class="grid" id="grid"></section>
+
+<!-- CART PAGE -->
+<div class="page" id="cart">
+<h2>Your Cart</h2>
+
+<div id="items"></div>
+<div class="total" id="total"></div>
+
+<div class="paybox">
+<h3>Kuda Bank Transfer</h3>
+<p><b>Account:</b> Sweet Bakery Ltd</p>
+<p><b>Account No:</b> 1234567890</p>
+<p><b>Amount:</b> ₦<span id="amount">0</span></p>
+</div>
+
+<button class="action" onclick="placeOrder()">I Have Paid</button>
+<button class="action" onclick="closeCart()">Close</button>
+
+<div id="receipt" class="receipt"></div>
+
+<!-- ADMIN DASHBOARD INSIDE SAME SYSTEM -->
+<div class="admin-panel" id="admin">
+<h3>Admin Dashboard</h3>
+<div id="orders"></div>
+</div>
+
+</div>
+
+<!-- LOGIN -->
+<div class="login" id="login">
+<div class="login-box">
+<h3>Admin Login</h3>
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+<button class="action" onclick="login()">Login</button>
+<button class="action" onclick="closeLogin()">Close</button>
+</div>
+</div>
+
+<script>
+
+let cart = {};
+let orders = [];
+
+/* PRODUCTS */
+const products = [
+{name:"Chocolate Cake",price:5000,img:"https://images.unsplash.com/photo-1578985545062"},
+{name:"Strawberry Cake",price:6000,img:"https://images.unsplash.com/photo-1519869325930"},
+{name:"Croissant",price:1200,img:"https://images.unsplash.com/photo-1555507036"},
+{name:"Donut",price:800,img:"https://images.unsplash.com/photo-1551024601"},
+{name:"Bread",price:1500,img:"https://images.unsplash.com/photo-1549931319"},
+{name:"Cupcake",price:1000,img:"https://images.unsplash.com/photo-1509440159596"},
+{name:"Brownie",price:2000,img:"https://images.unsplash.com/photo-1606313564200"},
+{name:"Cheesecake",price:5500,img:"https://images.unsplash.com/photo-1508737027454"},
+{name:"Muffin",price:900,img:"https://images.unsplash.com/photo-1608198093002"},
+{name:"Apple Pie",price:3000,img:"https://images.unsplash.com/photo-1519915028121"},
+{name:"Cookies",price:700,img:"https://images.unsplash.com/photo-1499636136210"},
+{name:"Eclair",price:1200,img:"https://images.unsplash.com/photo-1559628233"},
+{name:"Pretzel",price:1100,img:"https://images.unsplash.com/photo-1519864600265"},
+{name:"Scone",price:1300,img:"https://images.unsplash.com/photo-1605478371310"},
+{name:"Danish",price:1600,img:"https://images.unsplash.com/photo-1505253758473"},
+{name:"Swiss Roll",price:2500,img:"https://images.unsplash.com/photo-1541783245831"},
+{name:"Tart",price:2200,img:"https://images.unsplash.com/photo-1519869325930"}
+];
+
+/* RENDER PRODUCTS */
+function renderProducts(){
+let html = "";
+products.forEach(p=>{
+html += `
+<div class="card">
+<img src="${p.img}">
+<div>
+<h3>${p.name}</h3>
+<p>₦${p.price}</p>
+<button class="action" onclick="add('${p.name}',${p.price})">Add</button>
+</div>
+</div>`;
+});
+document.getElementById("grid").innerHTML = html;
+}
+
+/* CART SYSTEM */
+function add(name,price){
+if(!cart[name]) cart[name]={price,qty:0};
+cart[name].qty++;
+updateCount();
+}
+
+function updateCount(){
+let count = 0;
+for(let i in cart) count += cart[i].qty;
+document.getElementById("count").innerText = count;
+}
+
+/* CART PAGE */
+function openCart(){
+document.getElementById("cart").style.display="block";
+renderCart();
+renderOrders();
+}
+
+function closeCart(){
+document.getElementById("cart").style.display="none";
+}
+
+function renderCart(){
+let total = 0;
+let html = "";
+
+for(let i in cart){
+total += cart[i].price * cart[i].qty;
+html += `<div class="item">
+<span>${i} x${cart[i].qty}</span>
+<span>₦${cart[i].price * cart[i].qty}</span>
+</div>`;
+}
+
+document.getElementById("items").innerHTML = html;
+document.getElementById("total").innerText = "Total: ₦" + total;
+document.getElementById("amount").innerText = total;
+}
+
+/* ORDER SYSTEM */
+function placeOrder(){
+let id = "BK" + Math.floor(Math.random()*99999);
+
+let total = 0;
+for(let i in cart){
+total += cart[i].price * cart[i].qty;
+}
+
+orders.push({id,total,status:"Pending Payment"});
+
+document.getElementById("receipt").innerHTML =
+`<h3>Order Placed</h3><p>Order ID: ${id}</p><p>Status: Pending Payment</p>`;
+
+cart = {};
+updateCount();
+renderCart();
+renderOrders();
+}
+
+/* ADMIN */
+function renderOrders(){
+let html = "";
+
+orders.forEach(o=>{
+html += `
+<p><b>${o.id}</b> - ₦${o.total}
+<span class="status-pending">${o.status}</span></p>
+<button class="action" onclick="confirmPayment('${o.id}')">
+Confirm Payment
+</button><hr>`;
+});
+
+document.getElementById("orders").innerHTML = html;
+}
+
+function confirmPayment(id){
+orders.forEach(o=>{
+if(o.id === id) o.status = "Paid & Confirmed";
+});
+renderOrders();
+}
+
+/* LOGIN */
+function openLogin(){document.getElementById("login").style.display="flex";}
+function closeLogin(){document.getElementById("login").style.display="none";}
+
+function login(){
+let u = document.getElementById("user").value;
+let p = document.getElementById("pass").value;
+
+if(u==="admin" && p==="1234"){
+document.getElementById("login").style.display="none";
+document.getElementById("admin").style.display="block";
+renderOrders();
+}else{
+alert("Wrong credentials");
+}
+}
+
+renderProducts();
+
+</script>
+
+</body>
+</html>
