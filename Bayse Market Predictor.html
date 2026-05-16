@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bayse Markets Predictor</title>
+
+  <style>
+    body{
+      background:#0b1220;
+      color:white;
+      font-family:Arial;
+      padding:20px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:15px;
+    }
+
+    .card{
+      background:#111827;
+      padding:15px;
+      border-radius:12px;
+    }
+
+    .green{color:#22c55e;}
+    .red{color:#ef4444;}
+    .yellow{color:#facc15;}
+  </style>
+</head>
+
+<body>
+
+<h1>🌍 Institutional AI + Trade Timing System</h1>
+
+<div class="grid" id="board"></div>
+
+<script>
+
+// =====================
+// REAL CRYPTO DATA
+// =====================
+async function getCrypto(){
+
+  const res = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true"
+  );
+
+  return await res.json();
+}
+
+// =====================
+// GLOBAL MARKET CONDITIONS (SIMULATED MACRO DATA)
+// =====================
+function macro(){
+
+  return {
+    sp500: (Math.random() * 2 - 1) * 2,
+    usd: (Math.random() * 2 - 1) * 1.5,
+    gold: (Math.random() * 2 - 1) * 1.2,
+    volatility: Math.random() * 100
+  };
+}
+
+// =====================
+// INSTITUTIONAL SCORE ENGINE
+// =====================
+function aiScore(m){
+
+  let s = 50;
+
+  if(m.sp500 > 0) s += 15;
+  if(m.usd < 0) s += 10;
+  if(m.gold < 0) s += 10;
+
+  if(m.sp500 < 0) s -= 15;
+  if(m.usd > 0) s -= 10;
+  if(m.gold > 0) s -= 10;
+
+  if(m.volatility > 70) s -= 25;
+
+  return Math.max(0, Math.min(100, s));
+}
+
+// =====================
+// TRADE TIMING FILTER (NEW IMPORTANT PART)
+// =====================
+function tradeTiming(score, m){
+
+  // BAD MARKET CONDITIONS → NO TRADE
+  if(m.volatility > 80 || Math.abs(m.sp500) < 0.2){
+    return {
+      text:"🔴 DO NOT TRADE (LOW QUALITY MARKET)",
+      cls:"red"
+    };
+  }
+
+  // STRONG CONDITIONS → TRADE
+  if(score >= 70){
+    return {
+      text:"🟢 TRADE NOW (HIGH PROBABILITY SETUP)",
+      cls:"green"
+    };
+  }
+
+  // MEDIUM CONDITIONS → WAIT
+  if(score >= 45){
+    return {
+      text:"🟡 WAIT (UNCERTAIN CONDITIONS)",
+      cls:"yellow"
+    };
+  }
+
+  // WEAK CONDITIONS → NO TRADE
+  return {
+    text:"🔴 NO TRADE (BEARISH / LOW EDGE)",
+    cls:"red"
+  };
+}
+
+// =====================
+// MAIN RENDER
+// =====================
+async function render(){
+
+  const crypto = await getCrypto();
+  const m = macro();
+
+  const score = aiScore(m);
+  const decision = tradeTiming(score, m);
+
+  document.getElementById("board").innerHTML = `
+   
+    <div class="card">
+      <h2>📊 Bitcoin</h2>
+      💰 $${crypto.bitcoin.usd.toFixed(2)}<br>
+      📈 24h: ${crypto.bitcoin.usd_24h_change.toFixed(2)}%
+    </div>
+
+    <div class="card">
+      <h2>📊 Ethereum</h2>
+      💰 $${crypto.ethereum.usd.toFixed(2)}<br>
+      📈 24h: ${crypto.ethereum.usd_24h_change.toFixed(2)}%
+    </div>
+
+    <div class="card">
+      <h2>🌍 Market Conditions</h2>
+      📊 S&P Proxy: ${m.sp500.toFixed(2)}<br>
+      💵 USD Strength: ${m.usd.toFixed(2)}<br>
+      🪙 Gold: ${m.gold.toFixed(2)}<br>
+      ⚡ Volatility: ${m.volatility.toFixed(2)}
+    </div>
+
+    <div class="card ${decision.cls}">
+      <h2>🧠 AI TRADE DECISION</h2>
+      📊 Score: ${score.toFixed(2)}<br><br>
+      <b>${decision.text}</b>
+    </div>
+
+  `;
+}
+
+setInterval(render, 5000);
+render();
+
+</script>
+
+</body>
+</html>
